@@ -1,0 +1,135 @@
+# SWELT\_2025\_NeMo\_ASR
+
+This repository contains practical scripts and steps for **training Automatic Speech Recognition (ASR) models using NVIDIA NeMo** as part of the **SWELT 2025 Workshop**.
+
+---
+
+## **Steps to Train ASR**
+
+### **1️⃣ Data Preparation and Train Tokenizer**
+
+Prepare your data by collecting and cleaning your audio files and transcriptions.
+
+Ensure your dataset is in **NeMo manifest format**:
+
+```json
+{"audio_filepath": "/path/to/audio.wav", "duration": 3.45, "text": "your transcript here"}
+```
+
+If you choose **BPE (Byte-Pair Encoding) as your output units** (recommended if your data size is sufficient), train your tokenizer using:
+
+```bash
+./data/train_tokenizer.sh
+```
+
+This will train a SentencePiece BPE tokenizer on your transcriptions and generate a tokenizer model and vocabulary for use during ASR training.
+
+---
+
+### **2️⃣ Update Config with Dataset and Tokenizer**
+
+Edit your `config/train_config.yaml` to:
+
+* Add paths to your **training, validation, and test manifest files**.
+* Add the **tokenizer vocabulary path or directory**.
+* Adjust **batch size, number of epochs, and device settings** if needed.
+
+---
+
+### **3️⃣ Start ASR Training**
+
+Run the training script to start training your ASR model:
+
+```bash
+python asr_train.py \
+  --config-path=config \
+  --config-name=train_config.yaml \
+  trainer.devices=1 \
+  trainer.max_epochs=50
+```
+
+Adjust `devices` and `max_epochs` as per your GPU availability and training plan.
+
+---
+
+### **4️⃣ Evaluate the Trained ASR Model**
+
+After training, evaluate your model on your test dataset:
+
+```bash
+python asr_eval.py \
+  --config-path=config \
+  --config-name=train_config.yaml \
+  model.restore_from=/path/to/your/checkpoint.ckpt
+```
+
+This will compute **WER/CER on your test manifest**.
+
+---
+
+### **5️⃣ Fine-tune a Pretrained ASR Model (Optional)**
+
+Download a pretrained model:
+
+```bash
+wget https://huggingface.co/nvidia/stt_en_conformer_ctc_small/resolve/main/stt_en_conformer_ctc_small.nemo
+```
+
+Edit your `train_config.yaml` to include:
+
+```yaml
+model:
+  init_from_nemo_model: /path/to/stt_en_conformer_ctc_small.nemo
+```
+
+Start training as before:
+
+```bash
+python asr_train.py --config-path=config --config-name=train_config.yaml
+```
+
+---
+
+### **6️⃣ Inference with the Trained Model**
+
+After training, you can transcribe your own audio files using:
+
+```python
+import nemo.collections.asr as nemo_asr
+
+asr_model = nemo_asr.models.EncDecCTCModel.restore_from("/path/to/your/trained_model.nemo")
+transcription = asr_model.transcribe(paths2audio_files=["path/to/audio.wav"])
+print(transcription)
+```
+
+Or using the command line:
+
+```bash
+python asr_infer.py --model /path/to/your/trained_model.nemo --input path/to/audio.wav
+```
+
+---
+
+## **Dependencies**
+
+* Python 3.9+
+* NVIDIA NeMo with ASR support:
+
+```bash
+pip install nemo_toolkit[asr]
+```
+
+* PyTorch with CUDA for GPU-based training.
+
+---
+
+## **Contact**
+
+For issues or clarifications during the workshop:
+
+* `nayan@domain.edu`
+* Or during **SWELT 2025 lab sessions**.
+
+---
+
+🚀 Happy learning and hands-on ASR training with NeMo!
