@@ -75,7 +75,7 @@ Change arguments in `lm/infer_with_lm.sh` and run the following script to infer 
 
 
 ## **Force-Alignment**
-Follow README.md in `force-align` folder for force-aligning using CTC ASR
+
 
 ### **1️⃣ Force-Alignment with CTC ASR**
 
